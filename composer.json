@@ -1,0 +1,13 @@
+{
+    "name": "kanata-php/conveyor-server-client",
+    "description": "Server-Side WebSocket Client ready for Socket Conveyor",
+    "autoload": {
+        "psr-4": {
+            "KanataPhp\\ConveyorServerClient\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8",
+        "textalk/websocket": "^1.5"
+    }
+}
