@@ -4,6 +4,7 @@
 
 <p>
   <!-- badges -->
+    <a href="https://github.com/kanata-php/conveyor-server-client/actions/workflows/php.yml"><img src="https://github.com/kanata-php/conveyor-server-client/actions/workflows/php.yml/badge.svg" alt="Tests"></a>
 </p>
 
 

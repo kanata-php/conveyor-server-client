@@ -5,9 +5,9 @@ require __DIR__ . '/../../vendor/autoload.php';
 use Conveyor\SocketHandlers\SocketChannelPersistenceTable;
 use Conveyor\SocketHandlers\SocketListenerPersistenceTable;
 use Conveyor\SocketHandlers\SocketMessageRouter;
+use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
-use Tests\Samples\SecondaryBroadcastAction;
 
 // -----------------------------------------------
 // Dependencies

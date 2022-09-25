@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Samples;
+namespace Kanata\ConveyorServerClient\Tests\Samples;
 
 use Conveyor\Actions\BroadcastAction;
 

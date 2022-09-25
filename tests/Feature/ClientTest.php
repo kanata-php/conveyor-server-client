@@ -1,22 +1,25 @@
 <?php
 
-namespace Tests\Unit;
+namespace Kanata\ConveyorServerClient\Tests\Unit;
 
 use Conveyor\Actions\BroadcastAction;
 use Kanata\ConveyorServerClient\Client;
 use Swoole\Process;
-use Tests\Samples\SecondaryBroadcastAction;
-use Tests\TestCase;
+use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
+use Kanata\ConveyorServerClient\Tests\TestCase;
 use WebSocket\Client as WsClient;
 use WebSocket\TimeoutException;
 
 class ClientTest extends TestCase
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+    }
+
     /**
-     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::connect
      * @covers \Kanata\ConveyorServerClient\Client::connectionReady
-     * @return void
      */
     public function test_can_connect_to_ws_server()
     {
@@ -39,9 +42,7 @@ class ClientTest extends TestCase
     }
 
     /**
-     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::connectionReady
-     * @return void
      */
     public function test_can_send_message()
     {
@@ -69,9 +70,7 @@ class ClientTest extends TestCase
     }
 
     /**
-     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::handleChannelConnection
-     * @return void
      */
     public function test_can_connect_to_channel()
     {
@@ -128,9 +127,7 @@ class ClientTest extends TestCase
     }
 
     /**
-     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::handleListeners
-     * @return void
      */
     public function test_can_listen_specific_actions()
     {

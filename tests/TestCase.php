@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests;
+namespace Kanata\ConveyorServerClient\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Swoole\Process;

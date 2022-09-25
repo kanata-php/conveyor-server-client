@@ -5,8 +5,12 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Tests\\": "tests",
             "Kanata\\ConveyorServerClient\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kanata\\ConveyorServerClient\\Tests\\": "tests"
         }
     },
     "require": {
