@@ -13,6 +13,7 @@ use WebSocket\TimeoutException;
 class ClientTest extends TestCase
 {
     /**
+     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::connect
      * @covers \Kanata\ConveyorServerClient\Client::connectionReady
      * @return void
@@ -38,6 +39,7 @@ class ClientTest extends TestCase
     }
 
     /**
+     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::connectionReady
      * @return void
      */
@@ -67,6 +69,7 @@ class ClientTest extends TestCase
     }
 
     /**
+     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::handleChannelConnection
      * @return void
      */
@@ -125,6 +128,7 @@ class ClientTest extends TestCase
     }
 
     /**
+     * @covers \Kanata\ConveyorServerClient\Client
      * @covers \Kanata\ConveyorServerClient\Client::handleListeners
      * @return void
      */
