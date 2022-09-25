@@ -1,6 +1,6 @@
 <?php
 
-namespace KanataPhp\ConveyorServerClient;
+namespace Kanata\ConveyorServerClient;
 
 use WebSocket\Client as WsClient;
 
@@ -12,8 +12,12 @@ class Client
     protected string $uri;
     protected int $port;
     protected string $query;
-    protected string $channel;
-    protected string $listen;
+    protected ?string $channel;
+
+    /**
+     * @var array|null string[]
+     */
+    protected ?array $listen;
 
     /**
      * Message handler for the whole incoming object.
@@ -30,32 +34,18 @@ class Client
     protected $onReadyCallback = null;
 
     /**
-     * Message handler for only the data portion.
+     * Message handler.
      *
      * @var ?callable
      */
     protected $onMessageCallback = null;
 
     /**
-     * Message handler for the whole incoming object.
+     * Connection timeout.
      *
-     * @var ?callable
+     * @var int
      */
-    protected $onRawMessageCallback = null;
-
-    /**
-     * Message handler for the whole incoming object.
-     *
-     * @var ?callable
-     */
-    protected $onCloseCallback = null;
-
-    /**
-     * Error related callback
-     *
-     * @var ?callable
-     */
-    protected $onErrorCallback = null;
+    protected $timeout;
 
     public function __construct(array $options)
     {
@@ -67,20 +57,59 @@ class Client
         $this->listen = $options['listen'] ?? null;
         $this->onOpenCallback = $options['onOpenCallback'] ?? null;
         $this->onReadyCallback = $options['onReadyCallback'] ?? null;
-        $this->onMessageCallback = $options['onMessageCallback'] ?? null;
-        $this->onRawMessageCallback = $options['onRawMessageCallback'] ?? null;
-        $this->onCloseCallback = $options['onCloseCallback'] ?? null;
-        $this->onErrorCallback = $options['onErrorCallback'] ?? null;
-
-        $this->connect();
+        $this->onMessageCallback = $options['onMessageCallback'] ?? function(){};
+        $this->timeout = $options['timeout'] ?? -1;
     }
 
-    protected function connect()
+    public function connect()
     {
-        $this->client = new WsClient($this->protocol . '://' . $this->uri . ':' . $this->port . '/' . $this->query);
+        $this->client = new WsClient(
+            uri: $this->protocol . '://' . $this->uri . ':' . $this->port . '/' . $this->query,
+            options: ['timeout' => $this->timeout],
+        );
+
+        $this->handleChannelConnection();
+        $this->handleListeners();
+        $this->connectionReady();
+
         while($message = $this->client->receive()) {
-            $this->onMessageCallback($message);
+            call_user_func($this->onMessageCallback, $this->client, $message);
         }
+    }
+
+    protected function handleChannelConnection()
+    {
+        if (null === $this->channel) {
+            return;
+        }
+
+        $this->client->send(json_encode([
+            'action' => 'channel-connect',
+            'channel' => $this->channel,
+        ]));
+    }
+
+    protected function handleListeners()
+    {
+        if (null === $this->listen) {
+            return;
+        }
+
+        foreach ($this->listen as $actionName) {
+            $this->client->send(json_encode([
+                'action' => 'add-listener',
+                'listen' => $actionName,
+            ]));
+        }
+    }
+
+    protected function connectionReady()
+    {
+        if (null === $this->onReadyCallback) {
+            return;
+        }
+
+        call_user_func($this->onReadyCallback, $this->client);
     }
 
     public function close()

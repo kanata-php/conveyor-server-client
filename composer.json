@@ -1,13 +1,30 @@
 {
     "name": "kanata-php/conveyor-server-client",
     "description": "Server-Side WebSocket Client ready for Socket Conveyor",
+    "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
-            "KanataPhp\\ConveyorServerClient\\": "src/"
+            "Tests\\": "tests",
+            "Kanata\\ConveyorServerClient\\": "src/"
         }
     },
     "require": {
         "php": "^8",
         "textalk/websocket": "^1.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "codedungeon/phpunit-result-printer": "^0.32.0",
+        "openswoole/ide-helper": "^4.11",
+        "kanata-php/socket-conveyor": "^1.1"
+    },
+    "scripts": {
+        "test": [
+            "vendor/bin/phpunit"
+        ],
+        "coverage": [
+            "vendor/bin/phpunit --coverage-clover coverage.xml"
+        ]
     }
 }
