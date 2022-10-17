@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [0.0.3] - 2022-10-16
+
+### Added
+
+- Added disconnection callback.
+
 ## [0.0.2] - 2022-10-16
 
 ### Added
