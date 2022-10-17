@@ -253,4 +253,27 @@ class ClientTest extends TestCase
             json_decode($result2, true)['data']
         );
     }
+
+    /**
+     * @covers \Kanata\ConveyorServerClient\Client::handleDisconnection
+     */
+    public function test_disconnection_callback()
+    {
+        $process = new Process(function(Process $worker) {
+            $client = new Client([
+                'port' => 8585,
+                'onDisconnectCallback' => function(WsClient $currentClient, $attemptsCount) use ($worker) {
+                    $worker->write('disconnection-callbacl');
+                }
+            ]);
+            $client->connect();
+        }, true);
+
+        $pid = $process->start();
+        $this->stopWsServer();
+        $result = $process->read();
+        Process::kill($pid);
+
+        $this->assertEquals('disconnection-callbacl', $result);
+    }
 }

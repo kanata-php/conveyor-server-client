@@ -87,7 +87,8 @@ class Client
         $this->listen = $options['listen'] ?? null;
         $this->onOpenCallback = $options['onOpenCallback'] ?? null;
         $this->onReadyCallback = $options['onReadyCallback'] ?? null;
-        $this->onMessageCallback = $options['onMessageCallback'] ?? function(){};
+        $this->onMessageCallback = $options['onMessageCallback'] ?? null;
+        $this->onDisconnectCallback = $options['onDisconnectCallback'] ?? null;
         $this->timeout = $options['timeout'] ?? -1;
         $this->reconnect = isset($options['reconnect']) ? $options['reconnect'] : false;
         $this->reconnectionAttempts = $options['reconnectionAttempts'] ?? 0;
@@ -102,6 +103,8 @@ class Client
         } catch (TimeoutException $e) {
             throw $e;
         } catch (Exception $e) {
+            $this->handleDisconnection();
+
             if (
                 $this->reconnect
                 && $this->reconnectionAttemptsCount < $this->reconnectionAttempts
@@ -117,6 +120,19 @@ class Client
         }
     }
 
+    protected function handleDisconnection()
+    {
+        if (null === $this->onDisconnectCallback) {
+            return;
+        }
+
+        call_user_func(
+            $this->onDisconnectCallback,
+            $this->client,
+            $this->reconnectionAttemptsCount
+        );
+    }
+
     protected function handleClientConnection()
     {
         $this->client = new WsClient(
@@ -129,6 +145,9 @@ class Client
         $this->connectionReady();
 
         while($message = $this->client->receive()) {
+            if (null === $this->onMessageCallback) {
+                continue;
+            }
             call_user_func($this->onMessageCallback, $this->client, $message);
         }
     }
