@@ -147,7 +147,7 @@ class ClientTest extends TestCase
                 $worker->write('no-message-received');
                 $worker->close();
             }
-        });
+        }, true);
 
         $process2 = new Process(function(Process $worker) {
             $client = new Client([
@@ -165,7 +165,7 @@ class ClientTest extends TestCase
                 $worker->write('no-message-received');
                 $worker->close();
             }
-        });
+        }, true);
 
         $process3 = new Process(function(Process $worker) {
             $client = new Client([
@@ -185,7 +185,7 @@ class ClientTest extends TestCase
                 $worker->write('no-message-received');
                 $worker->close();
             }
-        });
+        }, true);
 
         $pid1 = $process1->start();
         sleep(0.5);
@@ -209,5 +209,48 @@ class ClientTest extends TestCase
         );
 
         $this->assertEquals('no-message-received', $result2);
+    }
+
+    /**
+     * @covers \Kanata\ConveyorServerClient\Client::handleClientConnection
+     */
+    public function test_can_reconnect()
+    {
+        $process = new Process(function(Process $worker) {
+            $client = new Client([
+                'port' => 8585,
+                'onReadyCallback' => function(WsClient $currentClient) {
+                    $currentClient->send('message-sent');
+                },
+                'onMessageCallback' => function(WsClient $currentClient, string $message) use ($worker) {
+                    $worker->write($message);
+                },
+                'reconnect' => true,
+                'reconnectionAttempts' => 2,
+                'reconnectionInterval' => 1,
+            ]);
+            $client->connect();
+        }, true);
+
+        $pid = $process->start();
+        $result = $process->read();
+
+        $this->stopWsServer();
+        sleep(0.5);
+        $this->startWsServer();
+
+        // this means it reconnected successfully!
+        $result2 = $process->read();
+
+        Process::kill($pid);
+
+        $this->assertEquals(
+            'message-sent',
+            json_decode($result, true)['data']
+        );
+        $this->assertEquals(
+            'message-sent',
+            json_decode($result2, true)['data']
+        );
     }
 }

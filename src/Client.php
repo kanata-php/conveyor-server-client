@@ -2,7 +2,9 @@
 
 namespace Kanata\ConveyorServerClient;
 
+use Exception;
 use WebSocket\Client as WsClient;
+use WebSocket\TimeoutException;
 
 class Client
 {
@@ -47,6 +49,34 @@ class Client
      */
     protected $timeout;
 
+    /**
+     * Reconnect.
+     *
+     * @var bool
+     */
+    protected bool $reconnect;
+
+    /**
+     * Reconnection attempts to retry.
+     *
+     * @var int
+     */
+    protected int $reconnectionAttempts;
+
+    /**
+     * Reconnection interval in seconds.
+     *
+     * @var int
+     */
+    protected int $reconnectionInterval;
+
+    /**
+     * Reconnection attempts count for control.
+     *
+     * @var int
+     */
+    protected int $reconnectionAttemptsCount = 0;
+
     public function __construct(array $options)
     {
         $this->protocol = $options['protocol'] ?? 'ws';
@@ -59,9 +89,35 @@ class Client
         $this->onReadyCallback = $options['onReadyCallback'] ?? null;
         $this->onMessageCallback = $options['onMessageCallback'] ?? function(){};
         $this->timeout = $options['timeout'] ?? -1;
+        $this->reconnect = isset($options['reconnect']) ? $options['reconnect'] : false;
+        $this->reconnectionAttempts = $options['reconnectionAttempts'] ?? 0;
+        $this->reconnectionInterval = $options['reconnectionInterval'] ?? 2;
     }
 
     public function connect()
+    {
+        try {
+            $this->handleClientConnection();
+            $this->reconnectionAttemptsCount = 0;
+        } catch (TimeoutException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            if (
+                $this->reconnect
+                && $this->reconnectionAttemptsCount < $this->reconnectionAttempts
+            ) {
+                sleep($this->reconnectionInterval);
+                echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;
+                $this->reconnectionAttemptsCount++;
+                $this->connect();
+                return;
+            }
+
+            throw $e;
+        }
+    }
+
+    protected function handleClientConnection()
     {
         $this->client = new WsClient(
             uri: $this->protocol . '://' . $this->uri . ':' . $this->port . '/' . $this->query,
