@@ -107,7 +107,10 @@ class Client
 
             if (
                 $this->reconnect
-                && $this->reconnectionAttemptsCount < $this->reconnectionAttempts
+                && (
+                    $this->reconnectionAttemptsCount < $this->reconnectionAttempts
+                    || -1 === $this->reconnectionAttempts
+                )
             ) {
                 sleep($this->reconnectionInterval);
                 echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;

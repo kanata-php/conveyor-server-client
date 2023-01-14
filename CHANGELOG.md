@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [0.0.4] - 2023-01-14
+
+### Added
+
+- Added infinite reconnection attempts option.
+
 ## [0.0.3] - 2022-10-16
 
 ### Added
