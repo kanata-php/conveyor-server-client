@@ -125,6 +125,7 @@ This package has the following options (showing its respective defaults):
     
     /**
      * Number of attempts if disconnects
+     * For this to keeps trying forever, set it to -1. 
      *
      * @var int
      */
