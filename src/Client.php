@@ -3,10 +3,11 @@
 namespace Kanata\ConveyorServerClient;
 
 use Exception;
+use WebSocket\BadOpcodeException;
 use WebSocket\Client as WsClient;
 use WebSocket\TimeoutException;
 
-class Client
+class Client implements ClientInterface
 {
     protected ?WsClient $client;
 
@@ -95,7 +96,12 @@ class Client
         $this->reconnectionInterval = $options['reconnectionInterval'] ?? 2;
     }
 
-    public function connect()
+    public function getClient(): ?WsClient
+    {
+        return $this->client;
+    }
+
+    public function connect(): void
     {
         try {
             $this->handleClientConnection();
@@ -123,7 +129,26 @@ class Client
         }
     }
 
-    protected function handleDisconnection()
+    /**
+     * @throws BadOpcodeException
+     */
+    public function send(string $message): void
+    {
+        $this->client->send(json_encode([
+            'action' => 'broadcast-action',
+            'data' => $message,
+        ]));
+    }
+
+    /**
+     * @throws BadOpcodeException
+     */
+    public function sendRaw(string $message): void
+    {
+        $this->client->send($message);
+    }
+
+    protected function handleDisconnection(): void
     {
         if (null === $this->onDisconnectCallback) {
             return;
@@ -131,12 +156,12 @@ class Client
 
         call_user_func(
             $this->onDisconnectCallback,
-            $this->client,
+            $this,
             $this->reconnectionAttemptsCount
         );
     }
 
-    protected function handleClientConnection()
+    protected function handleClientConnection(): void
     {
         $this->client = new WsClient(
             uri: $this->protocol . '://' . $this->uri . ':' . $this->port . '/' . $this->query,
@@ -151,11 +176,11 @@ class Client
             if (null === $this->onMessageCallback) {
                 continue;
             }
-            call_user_func($this->onMessageCallback, $this->client, $message);
+            call_user_func($this->onMessageCallback, $this, $message);
         }
     }
 
-    protected function handleChannelConnection()
+    protected function handleChannelConnection(): void
     {
         if (null === $this->channel) {
             return;
@@ -167,7 +192,7 @@ class Client
         ]));
     }
 
-    protected function handleListeners()
+    protected function handleListeners(): void
     {
         if (null === $this->listen) {
             return;
@@ -181,16 +206,16 @@ class Client
         }
     }
 
-    protected function connectionReady()
+    protected function connectionReady(): void
     {
         if (null === $this->onReadyCallback) {
             return;
         }
 
-        call_user_func($this->onReadyCallback, $this->client);
+        call_user_func($this->onReadyCallback, $this);
     }
 
-    public function close()
+    public function close(): void
     {
         $this->client->close();
         $this->client = null;

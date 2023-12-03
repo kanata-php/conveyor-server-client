@@ -2,12 +2,14 @@
 
 namespace Kanata\ConveyorServerClient\Tests\Unit;
 
+use co;
 use Conveyor\Actions\BroadcastAction;
 use Kanata\ConveyorServerClient\Client;
-use Swoole\Process;
+use OpenSwoole\Core\Coroutine\WaitGroup;
+use OpenSwoole\Coroutine\Channel;
 use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
 use Kanata\ConveyorServerClient\Tests\TestCase;
-use WebSocket\Client as WsClient;
+use OpenSwoole\Process;
 use WebSocket\TimeoutException;
 
 class ClientTest extends TestCase
@@ -43,25 +45,37 @@ class ClientTest extends TestCase
 
     /**
      * @covers \Kanata\ConveyorServerClient\Client::connectionReady
+     * @covers \Kanata\ConveyorServerClient\Client::send
      */
     public function test_can_send_message()
     {
         $process = new Process(function(Process $worker) {
             $client = new Client([
                 'port' => 8585,
-                'onReadyCallback' => function(WsClient $currentClient) {
-                    $currentClient->send('message-sent');
-                },
-                'onMessageCallback' => function(WsClient $currentClient, string $message) use ($worker) {
+                'channel' => 'sample-channel',
+                'onMessageCallback' => function(Client $currentClient, string $message) use ($worker) {
                     $worker->write($message);
                 },
             ]);
             $client->connect();
         });
 
+        $process2 = new Process(function(Process $worker) {
+            $client2 = new Client([
+                'port' => 8585,
+                'channel' => 'sample-channel',
+                'onReadyCallback' => function(Client $currentClient) use ($worker) {
+                    $currentClient->send('message-sent');
+                },
+            ]);
+            $client2->connect();
+        });
+
         $pid = $process->start();
+        $pid2 = $process2->start();
         $result = $process->read();
         Process::kill($pid);
+        Process::kill($pid2);
 
         $this->assertEquals(
             'message-sent',
@@ -78,7 +92,7 @@ class ClientTest extends TestCase
             $client = new Client([
                 'port' => 8585,
                 'channel' => 'sample-channel',
-                'onMessageCallback' => function(WsClient $currentClient, string $message) use ($worker) {
+                'onMessageCallback' => function(Client $currentClient, string $message) use ($worker) {
                     $worker->write($message);
                 },
                 'timeout' => 1,
@@ -95,11 +109,8 @@ class ClientTest extends TestCase
             $client = new Client([
                 'port' => 8585,
                 'channel' => 'sample-channel',
-                'onReadyCallback' => function(WsClient $currentClient) {
-                    $currentClient->send(json_encode([
-                        'action' => BroadcastAction::ACTION_NAME,
-                        'data' => 'message-sent',
-                    ]));
+                'onReadyCallback' => function(Client $currentClient) {
+                    $currentClient->send('message-sent');
                 },
                 'timeout' => 1,
             ]);
@@ -136,7 +147,7 @@ class ClientTest extends TestCase
                 'port' => 8585,
                 'channel' => 'sample-channel',
                 'listen' => [SecondaryBroadcastAction::ACTION_NAME],
-                'onMessageCallback' => function(WsClient $currentClient, string $message) use ($worker) {
+                'onMessageCallback' => function(Client $currentClient, string $message) use ($worker) {
                     $worker->write($message);
                 },
                 'timeout' => 1,
@@ -154,7 +165,7 @@ class ClientTest extends TestCase
                 'port' => 8585,
                 'channel' => 'sample-channel',
                 'listen' => [BroadcastAction::ACTION_NAME],
-                'onMessageCallback' => function (WsClient $currentClient, string $message) use ($worker) {
+                'onMessageCallback' => function (Client $currentClient, string $message) use ($worker) {
                     $worker->write($message);
                 },
                 'timeout' => 1,
@@ -171,8 +182,8 @@ class ClientTest extends TestCase
             $client = new Client([
                 'port' => 8585,
                 'channel' => 'sample-channel',
-                'onReadyCallback' => function(WsClient $currentClient) {
-                    $currentClient->send(json_encode([
+                'onReadyCallback' => function(Client $currentClient) {
+                    $currentClient->sendRaw(json_encode([
                         'action' => SecondaryBroadcastAction::ACTION_NAME,
                         'data' => 'message-sent',
                     ]));
@@ -219,10 +230,10 @@ class ClientTest extends TestCase
         $process = new Process(function(Process $worker) {
             $client = new Client([
                 'port' => 8585,
-                'onReadyCallback' => function(WsClient $currentClient) {
-                    $currentClient->send('message-sent');
+                'onReadyCallback' => function(Client $currentClient) {
+                    $currentClient->sendRaw('message-sent');
                 },
-                'onMessageCallback' => function(WsClient $currentClient, string $message) use ($worker) {
+                'onMessageCallback' => function(Client $currentClient, string $message) use ($worker) {
                     $worker->write($message);
                 },
                 'reconnect' => true,
@@ -262,7 +273,7 @@ class ClientTest extends TestCase
         $process = new Process(function(Process $worker) {
             $client = new Client([
                 'port' => 8585,
-                'onDisconnectCallback' => function(WsClient $currentClient, $attemptsCount) use ($worker) {
+                'onDisconnectCallback' => function(Client $currentClient, $attemptsCount) use ($worker) {
                     $worker->write('disconnection-callbacl');
                 }
             ]);

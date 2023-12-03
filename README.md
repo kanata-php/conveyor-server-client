@@ -31,10 +31,9 @@ Once installed, the following example shows how it works to use this package.
 
 ```php
 use Kanata\ConveyorServerClient\Client;
-use WebSocket\Client as WsClient;
 
 $options = [
-    'onMessageCallback' => function(WsClient $currentClient, string $message) {
+    'onMessageCallback' => function(Client $currentClient, string $message) {
         echo 'Message received: ' . $message . PHP_EOL;
     },
 ];
@@ -138,6 +137,22 @@ This package has the following options (showing its respective defaults):
      */
     'reconnectionInterval' => = 2;
 ]
+```
+
+This is this package's Conveyor Client interface:
+
+```php
+namespace Kanata\ConveyorServerClient;
+
+use WebSocket\Client;
+
+interface ClientInterface
+{
+    public function connect(): void;
+    public function getClient(): ?Client;
+    public function close(): void;
+    public function send(string $message): void;
+}
 ```
 
 ## Author
