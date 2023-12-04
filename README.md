@@ -152,6 +152,7 @@ interface ClientInterface
     public function getClient(): ?Client;
     public function close(): void;
     public function send(string $message): void;
+    public function sendRaw(string $message): void;
 }
 ```
 
