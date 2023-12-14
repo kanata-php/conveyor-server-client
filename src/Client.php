@@ -30,6 +30,13 @@ class Client implements ClientInterface
     protected $onOpenCallback = null;
 
     /**
+     * Callback for when the server is disconnecting.
+     *
+     * @var mixed|null
+     */
+    protected $onDisconnectCallback = null;
+
+    /**
      * Callback for after the connection is established.
      *
      * @var ?callable
