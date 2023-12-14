@@ -11,23 +11,16 @@ class Client implements ClientInterface
 {
     protected ?WsClient $client;
 
-    protected string $protocol;
-    protected string $uri;
-    protected int $port;
-    protected string $query;
-    protected ?string $channel;
+    protected string $protocol = 'ws';
+    protected string $uri = '127.0.0.1';
+    protected int $port = 8000;
+    protected string $query = '';
+    protected ?string $channel = null;
 
     /**
      * @var array|null string[]
      */
-    protected ?array $listen;
-
-    /**
-     * Message handler for the whole incoming object.
-     *
-     * @var ?callable
-     */
-    protected $onOpenCallback = null;
+    protected ?array $listen = null;
 
     /**
      * Callback for when the server is disconnecting.
@@ -55,28 +48,28 @@ class Client implements ClientInterface
      *
      * @var int
      */
-    protected $timeout;
+    protected $timeout = -1;
 
     /**
      * Reconnect.
      *
      * @var bool
      */
-    protected bool $reconnect;
+    protected bool $reconnect = false;
 
     /**
      * Reconnection attempts to retry.
      *
      * @var int
      */
-    protected int $reconnectionAttempts;
+    protected int $reconnectionAttempts = 0;
 
     /**
      * Reconnection interval in seconds.
      *
      * @var int
      */
-    protected int $reconnectionInterval;
+    protected int $reconnectionInterval = 2;
 
     /**
      * Reconnection attempts count for control.
@@ -87,20 +80,11 @@ class Client implements ClientInterface
 
     public function __construct(array $options)
     {
-        $this->protocol = $options['protocol'] ?? 'ws';
-        $this->uri = $options['uri'] ?? '127.0.0.1';
-        $this->port = $options['port'] ?? 8000;
-        $this->query = $options['query'] ?? '';
-        $this->channel = $options['channel'] ??  null;
-        $this->listen = $options['listen'] ?? null;
-        $this->onOpenCallback = $options['onOpenCallback'] ?? null;
-        $this->onReadyCallback = $options['onReadyCallback'] ?? null;
-        $this->onMessageCallback = $options['onMessageCallback'] ?? null;
-        $this->onDisconnectCallback = $options['onDisconnectCallback'] ?? null;
-        $this->timeout = $options['timeout'] ?? -1;
-        $this->reconnect = isset($options['reconnect']) ? $options['reconnect'] : false;
-        $this->reconnectionAttempts = $options['reconnectionAttempts'] ?? 0;
-        $this->reconnectionInterval = $options['reconnectionInterval'] ?? 2;
+        foreach ($options as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->{$key} = $value;
+            }
+        }
     }
 
     public function getClient(): ?WsClient

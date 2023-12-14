@@ -274,7 +274,7 @@ class ClientTest extends TestCase
             $client = new Client([
                 'port' => 8585,
                 'onDisconnectCallback' => function(Client $currentClient, $attemptsCount) use ($worker) {
-                    $worker->write('disconnection-callbacl');
+                    $worker->write('disconnection-callback');
                 }
             ]);
             $client->connect();
@@ -285,6 +285,6 @@ class ClientTest extends TestCase
         $result = $process->read();
         Process::kill($pid);
 
-        $this->assertEquals('disconnection-callbacl', $result);
+        $this->assertEquals('disconnection-callback', $result);
     }
 }
