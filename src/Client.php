@@ -3,6 +3,7 @@
 namespace Kanata\ConveyorServerClient;
 
 use Exception;
+use Psr\Log\LoggerInterface;
 use WebSocket\BadOpcodeException;
 use WebSocket\Client as WsClient;
 use WebSocket\TimeoutException;
@@ -77,6 +78,8 @@ class Client implements ClientInterface
      * @var int
      */
     protected int $reconnectionAttemptsCount = 0;
+
+    protected ?LoggerInterface $logger = null;
 
     public function __construct(array $options)
     {
@@ -155,8 +158,11 @@ class Client implements ClientInterface
     protected function handleClientConnection(): void
     {
         $this->client = new WsClient(
-            uri: $this->protocol . '://' . $this->uri . ':' . $this->port . '/' . $this->query,
-            options: ['timeout' => $this->timeout],
+            uri: "{$this->protocol}://{$this->uri}:{$this->port}/{$this->query}",
+            options: [
+                'timeout' => $this->timeout,
+                'logger' => $this->logger,
+            ],
         );
 
         $this->handleChannelConnection();

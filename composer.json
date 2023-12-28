@@ -21,7 +21,7 @@
         "phpunit/phpunit": "^9.5",
         "codedungeon/phpunit-result-printer": "^0.32.0",
         "openswoole/ide-helper": "^22.0",
-        "kanata-php/socket-conveyor": "^1.1",
+        "kanata-php/socket-conveyor": "^2.0",
         "openswoole/core": "^22.1"
     },
     "scripts": {
