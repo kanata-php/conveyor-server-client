@@ -2,7 +2,9 @@
 
 namespace Kanata\ConveyorServerClient;
 
+use co;
 use Exception;
+use OpenSwoole\Timer;
 use Psr\Log\LoggerInterface;
 use WebSocket\BadOpcodeException;
 use WebSocket\Client as WsClient;
@@ -79,6 +81,11 @@ class Client implements ClientInterface
      */
     protected int $reconnectionAttemptsCount = 0;
 
+    /**
+     * @var ?int Timer id for ping.
+     */
+    protected ?int $pingTimer = null;
+
     protected ?LoggerInterface $logger = null;
 
     public function __construct(array $options)
@@ -95,7 +102,27 @@ class Client implements ClientInterface
         return $this->client;
     }
 
+    public function getPingTimer(): ?int
+    {
+        return $this->pingTimer;
+    }
+
+    /**
+     * @throws TimeoutException|Exception
+     */
     public function connect(): void
+    {
+        co::run(function () {
+            go(fn () => $this->startConnection());
+            go(fn () => $this->pingTimer = Timer::tick(5000, function () {
+                if ($this->getClient() && $this->getClient()->isConnected()) {
+                    $this->getClient()->ping();
+                }
+            }));
+        });
+    }
+
+    private function startConnection()
     {
         try {
             $this->handleClientConnection();
@@ -155,6 +182,9 @@ class Client implements ClientInterface
         );
     }
 
+    /**
+     * @throws TimeoutException|Exception
+     */
     protected function handleClientConnection(): void
     {
         $this->client = new WsClient(
@@ -170,11 +200,20 @@ class Client implements ClientInterface
         $this->handleListeners();
         $this->connectionReady();
 
-        while($message = $this->client->receive()) {
-            if (null === $this->onMessageCallback) {
-                continue;
+        try {
+            while ($message = $this->client->receive()) {
+                if (null === $this->onMessageCallback) {
+                    continue;
+                }
+                call_user_func($this->onMessageCallback, $this, $message);
             }
-            call_user_func($this->onMessageCallback, $this, $message);
+        } catch (TimeoutException $e) {
+            if ($this->timeout === -1) {
+                throw $e;
+            }
+            $this->close();
+        } catch (Exception $e) {
+            throw $e;
         }
     }
 
@@ -215,6 +254,7 @@ class Client implements ClientInterface
 
     public function close(): void
     {
+        Timer::clear($this->getPingTimer());
         $this->client->close();
         $this->client = null;
     }
