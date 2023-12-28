@@ -159,10 +159,11 @@ class Client implements ClientInterface
     {
         $this->client = new WsClient(
             uri: "{$this->protocol}://{$this->uri}:{$this->port}/{$this->query}",
-            options: [
+            options: array_merge([
                 'timeout' => $this->timeout,
+            ], $this->logger ? [
                 'logger' => $this->logger,
-            ],
+            ] : []),
         );
 
         $this->handleChannelConnection();
