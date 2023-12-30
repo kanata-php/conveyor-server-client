@@ -201,7 +201,7 @@ class Client implements ClientInterface
         $this->connectionReady();
 
         try {
-            while ($message = $this->client->receive()) {
+            while ($this->client && $message = $this->client->receive()) {
                 if (null === $this->onMessageCallback) {
                     continue;
                 }
