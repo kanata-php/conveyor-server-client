@@ -2,42 +2,29 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Conveyor\SocketHandlers\SocketChannelPersistenceTable;
-use Conveyor\SocketHandlers\SocketListenerPersistenceTable;
-use Conveyor\SocketHandlers\SocketMessageRouter;
+use Conveyor\Conveyor;
+use Conveyor\Persistence\WebSockets\Table\SocketChannelPersistenceTable;
+use Conveyor\Persistence\WebSockets\Table\SocketListenerPersistenceTable;
 use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
-use Swoole\WebSocket\Frame;
-use Swoole\WebSocket\Server;
-
-// -----------------------------------------------
-// Dependencies
-// -----------------------------------------------
-
-$persistence = [
-    new SocketChannelPersistenceTable,
-    new SocketListenerPersistenceTable,
-];
+use OpenSwoole\WebSocket\Frame;
+use OpenSwoole\WebSocket\Server;
 
 // -----------------------------------------------
 // Helpers
 // -----------------------------------------------
 
-function processMessage(
-    string $data,
-    int $fd,
-    Server $server,
-    array $persistence
-) {
-    $socketRouter = new SocketMessageRouter($persistence);
-    $socketRouter->add(new SecondaryBroadcastAction);
-    $socketRouter($data, $fd, $server);
-}
-
 $server = new Server('0.0.0.0', 8585);
 
-$server->on('message', function (Server $server, Frame $frame) use ($persistence) {
+$server->on('message', function (Server $server, Frame $frame) {
     // echo '(' . $frame->fd . ') Received message: ' . $frame->data . PHP_EOL;
-    processMessage($frame->data, $frame->fd, $server, $persistence);
+    Conveyor::init()
+        ->server($server)
+        ->fd($frame->fd)
+        ->persistence()
+        ->addActions([
+            new SecondaryBroadcastAction,
+        ])
+        ->run($frame->data);
 });
 
 $server->set([

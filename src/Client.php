@@ -12,13 +12,14 @@ use WebSocket\TimeoutException;
 
 class Client implements ClientInterface
 {
-    protected ?WsClient $client;
+    protected ?WsClient $client = null;
 
     protected string $protocol = 'ws';
     protected string $uri = '127.0.0.1';
     protected int $port = 8000;
     protected string $query = '';
     protected ?string $channel = null;
+    protected ?int $userId = null;
 
     /**
      * @var array|null string[]
@@ -112,11 +113,17 @@ class Client implements ClientInterface
      */
     public function connect(): void
     {
+        if (!$this->getClient()?->isConnected()) {
+            $this->close();
+        }
+
         co::run(function () {
             go(fn () => $this->startConnection());
             go(fn () => $this->pingTimer = Timer::tick(5000, function () {
-                if ($this->getClient() && $this->getClient()->isConnected()) {
+                if ($this->getClient()?->isConnected()) {
                     $this->getClient()->ping();
+                } else {
+                    Timer::clear($this->getPingTimer());
                 }
             }));
         });
@@ -171,6 +178,8 @@ class Client implements ClientInterface
 
     protected function handleDisconnection(): void
     {
+        $this->close();
+
         if (null === $this->onDisconnectCallback) {
             return;
         }
@@ -196,6 +205,7 @@ class Client implements ClientInterface
             ] : []),
         );
 
+        $this->handleUserAssociation();
         $this->handleChannelConnection();
         $this->handleListeners();
         $this->connectionReady();
@@ -215,6 +225,18 @@ class Client implements ClientInterface
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    protected function handleUserAssociation(): void
+    {
+        if (null === $this->userId) {
+            return;
+        }
+
+        $this->client->send(json_encode([
+            'action' => 'assoc-user-to-fd-action',
+            'userId' => $this->userId,
+        ]));
     }
 
     protected function handleChannelConnection(): void
@@ -255,7 +277,7 @@ class Client implements ClientInterface
     public function close(): void
     {
         Timer::clear($this->getPingTimer());
-        $this->client->close();
+        $this->client?->close();
         $this->client = null;
     }
 }
