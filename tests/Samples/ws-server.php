@@ -2,9 +2,7 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use Conveyor\Conveyor;
-use Conveyor\Persistence\WebSockets\Table\SocketChannelPersistenceTable;
-use Conveyor\Persistence\WebSockets\Table\SocketListenerPersistenceTable;
+use Conveyor\SubProtocols\Conveyor\Conveyor;
 use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
 use OpenSwoole\WebSocket\Frame;
 use OpenSwoole\WebSocket\Server;

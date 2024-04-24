@@ -2,8 +2,7 @@
 
 namespace Kanata\ConveyorServerClient\Tests\Unit;
 
-use co;
-use Conveyor\Actions\BroadcastAction;
+use Conveyor\SubProtocols\Conveyor\Actions\BroadcastAction;
 use Kanata\ConveyorServerClient\Client;
 use Kanata\ConveyorServerClient\Tests\Samples\SecondaryBroadcastAction;
 use Kanata\ConveyorServerClient\Tests\TestCase;

@@ -21,7 +21,7 @@
         "phpunit/phpunit": "^9.5",
         "codedungeon/phpunit-result-printer": "^0.32.0",
         "openswoole/ide-helper": "^22.0",
-        "kanata-php/socket-conveyor": "^2.0",
+        "kanata-php/socket-conveyor": "^3.0.1-beta",
         "openswoole/core": "^22.1"
     },
     "scripts": {
@@ -31,5 +31,10 @@
         "coverage": [
             "vendor/bin/phpunit --coverage-clover coverage.xml"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "phpro/grumphp": false
+        }
     }
 }

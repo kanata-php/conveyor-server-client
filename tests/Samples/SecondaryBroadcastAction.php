@@ -2,7 +2,7 @@
 
 namespace Kanata\ConveyorServerClient\Tests\Samples;
 
-use Conveyor\Actions\BroadcastAction;
+use Conveyor\SubProtocols\Conveyor\Actions\BroadcastAction;
 
 class SecondaryBroadcastAction extends BroadcastAction
 {

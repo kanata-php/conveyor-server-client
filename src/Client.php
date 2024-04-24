@@ -22,11 +22,6 @@ class Client implements ClientInterface
     protected ?int $userId = null;
 
     /**
-     * @var array|null string[]
-     */
-    protected ?array $listen = null;
-
-    /**
      * Callback for when the server is disconnecting.
      *
      * @var mixed|null
@@ -207,7 +202,6 @@ class Client implements ClientInterface
 
         $this->handleUserAssociation();
         $this->handleChannelConnection();
-        $this->handleListeners();
         $this->connectionReady();
 
         try {
@@ -249,20 +243,6 @@ class Client implements ClientInterface
             'action' => 'channel-connect',
             'channel' => $this->channel,
         ]));
-    }
-
-    protected function handleListeners(): void
-    {
-        if (null === $this->listen) {
-            return;
-        }
-
-        foreach ($this->listen as $actionName) {
-            $this->client->send(json_encode([
-                'action' => 'add-listener',
-                'listen' => $actionName,
-            ]));
-        }
     }
 
     protected function connectionReady(): void
