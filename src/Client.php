@@ -6,8 +6,10 @@ use co;
 use Exception;
 use OpenSwoole\Timer;
 use Psr\Log\LoggerInterface;
+use Throwable;
 use WebSocket\BadOpcodeException;
 use WebSocket\Client as WsClient;
+use WebSocket\ConnectionException;
 use WebSocket\TimeoutException;
 
 class Client implements ClientInterface
@@ -131,25 +133,31 @@ class Client implements ClientInterface
             $this->reconnectionAttemptsCount = 0;
         } catch (TimeoutException $e) {
             throw $e;
+        } catch (ConnectionException $e) {
+            $this->handleReconnection($e);
         } catch (Exception $e) {
             $this->handleDisconnection();
-
-            if (
-                $this->reconnect
-                && (
-                    $this->reconnectionAttemptsCount < $this->reconnectionAttempts
-                    || -1 === $this->reconnectionAttempts
-                )
-            ) {
-                sleep($this->reconnectionInterval);
-                echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;
-                $this->reconnectionAttemptsCount++;
-                $this->connect();
-                return;
-            }
-
-            throw $e;
+            $this->handleReconnection($e);
         }
+    }
+
+    private function handleReconnection(Throwable $e)
+    {
+        if (
+            $this->reconnect
+            && (
+                $this->reconnectionAttemptsCount < $this->reconnectionAttempts
+                || -1 === $this->reconnectionAttempts
+            )
+        ) {
+            sleep($this->reconnectionInterval);
+            echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;
+            $this->reconnectionAttemptsCount++;
+            $this->connect();
+            return;
+        }
+
+        throw $e;
     }
 
     /**
