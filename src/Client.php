@@ -45,6 +45,13 @@ class Client implements ClientInterface
     protected $onMessageCallback = null;
 
     /**
+     * Callback for Reconnection moment.
+     *
+     * @var callable|null
+     */
+    protected $onReconnectionCallback = null;
+
+    /**
      * Connection timeout.
      *
      * @var int
@@ -143,6 +150,14 @@ class Client implements ClientInterface
 
     private function handleReconnection(Throwable $e)
     {
+        if (is_callable($this->onReconnectionCallback)) {
+            call_user_func(
+                $this->onReconnectionCallback,
+                $this,
+                $e,
+            );
+        }
+
         if (
             $this->reconnect
             && (

@@ -111,6 +111,16 @@ This package has the following options (showing its respective defaults):
     'onDisconnectCallback' => null,
     
     /**
+     * Callback for Reconnection moment.
+     * Passed parameters:
+     *   - \WebSocket\Client $client
+     *   - int \Throwable $e
+     *
+     * @var ?callable
+     */
+    'onReconnectionCallback' => null,
+    
+    /**
      * When positive, considered in seconds
      *
      * @var int
