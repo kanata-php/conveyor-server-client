@@ -169,10 +169,7 @@ class Client implements ClientInterface
             echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;
             $this->reconnectionAttemptsCount++;
             $this->connect();
-            return;
         }
-
-        throw $e;
     }
 
     /**
@@ -210,7 +207,7 @@ class Client implements ClientInterface
     }
 
     /**
-     * @throws TimeoutException|Exception
+     * @throws TimeoutException|Exception|ConnectionException
      */
     protected function handleClientConnection(): void
     {
